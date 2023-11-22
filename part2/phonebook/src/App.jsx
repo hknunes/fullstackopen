@@ -1,16 +1,17 @@
-import { useState } from "react";
-import Numbers from "./components/Numbers";
+import { useState } from 'react';
+import Numbers from './components/Numbers';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
-  const [newName, setNewName] = useState("");
-  const [newNumber, setNewNumber] = useState("")
+  const [newName, setNewName] = useState('');
+  const [newNumber, setNewNumber] = useState('');
 
   const addPerson = (event) => {
     event.preventDefault();
     const personObject = {
       name: newName,
       id: newName,
+      number: newNumber,
     };
 
     const isDuplicated = persons.some((element) => {
@@ -27,7 +28,8 @@ const App = () => {
       setPersons(persons.concat(personObject));
     }
 
-    setNewName("");
+    setNewName('');
+    setNewNumber('');
   };
 
   const handleNameChange = (event) => {
@@ -45,7 +47,9 @@ const App = () => {
         <div>
           name: <input value={newName} onChange={handleNameChange} />
         </div>
-        <div>number: <input value={newNumber} onChange={{handleNumberChange}} /></div>
+        <div>
+          number: <input value={newNumber} onChange={handleNumberChange} />
+        </div>
         <div>
           <button type="submit">add</button>
         </div>
@@ -53,7 +57,9 @@ const App = () => {
       <h2>Numbers</h2>
       <Numbers persons={persons} />
 
-      <div>debug: {newName}</div>
+      <div>
+        debug: {newName} {newNumber}
+      </div>
     </div>
   );
 };
