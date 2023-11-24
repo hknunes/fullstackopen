@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-const Numbers = ({ persons }) => {
+const Persons = ({ persons }) => {
   return (
     <div>
       {persons.map((person) => (
@@ -11,4 +11,4 @@ const Numbers = ({ persons }) => {
   );
 };
 
-export default Numbers;
+export default Persons;
