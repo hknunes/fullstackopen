@@ -1,39 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Persons from './components/Persons';
 import PersonForm from './components/PersonForm';
 import Filter from './components/Filter';
+import personsService from './services/persons';
+import Notification from './components/Notification';
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
+  const [notification, setNotification] = useState(null);
+  const getPersons = () => {
+    personsService.getAll().then((initialPersons) => {
+      setPersons(initialPersons);
+    });
+  };
+
+  useEffect(getPersons, []);
 
   const addPerson = (event) => {
     event.preventDefault();
     const personObject = {
       name: newName,
-      id: newName,
       number: newNumber,
     };
 
-    const isDuplicated = persons.some((element) => {
-      if (element.id === personObject.id) {
-        return true;
-      }
-      return false;
-    });
-
-    if (isDuplicated) {
-      alert(`${newName} is already added to phonebook`);
-      return;
+    if (!persons.some((person) => person.name === newName)) {
+      personsService
+        .create(personObject)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNotification(`Added ${personObject.name}`);
+          setTimeout(() => {
+            setNotification(null);
+          }, 1000);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     } else {
-      setPersons(persons.concat(personObject));
+      if (
+        window.confirm(
+          `${personObject.name} is already added to phonebook, replace the old number with a new namber?`
+        )
+      ) {
+        const personObj = persons.find((person) => person.name === newName);
+        const changedPerson = { ...personObj, number: newNumber };
+        personsService
+          .update(changedPerson.id, personObject)
+          .then((updatedPerson) => {
+            setPersons(
+              persons.map((n) =>
+                n.id !== changedPerson.id ? n : updatedPerson
+              )
+            );
+            setNotification(`Updated ${personObject.name}`);
+            setTimeout(() => {
+              setNotification(null);
+            }, 1000);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
     }
 
     setNewName('');
@@ -50,22 +80,36 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value);
-    const filteredPersons = () => persons.filter(person => person.name.includes(filter));
+    const filteredPersons = () =>
+      persons.filter((person) => person.name.includes(filter));
     setPersons(filteredPersons);
+  };
+
+  const handleDelete = (id) => {
+    const person = persons.find((person) => person.id === id);
+    if (window.confirm(`Delete ${person.name}?`)) {
+      personsService.remove(id);
+      setPersons(persons.filter((persons) => persons.id !== id));
+    }
   };
 
   return (
     <div>
       <h2>Phonebook</h2>
 
-      <Filter value={filter} onChange={handleFilterChange}/>
+      <Notification message={notification} />
+      <Filter value={filter} onChange={handleFilterChange} />
 
       <h2>Add a new</h2>
-      <PersonForm onSubmit={addPerson} newName={newName} handleNameChange={handleNameChange} newNumber={newNumber} handleNumberChange={handleNumberChange}/>
+      <PersonForm
+        onSubmit={addPerson}
+        newName={newName}
+        handleNameChange={handleNameChange}
+        newNumber={newNumber}
+        handleNumberChange={handleNumberChange}
+      />
       <h2>Numbers</h2>
-      <Persons persons={persons} />
-
-      <div>Debug: {filter}</div>
+      <Persons persons={persons} onDelete={handleDelete} />
     </div>
   );
 };
