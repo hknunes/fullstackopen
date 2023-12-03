@@ -1,0 +1,7 @@
+div.notification {
+    color: green;
+    border: 2px solid green;
+    font-size: 24px;
+    padding: 12px;
+    margin: 8px;
+  }
